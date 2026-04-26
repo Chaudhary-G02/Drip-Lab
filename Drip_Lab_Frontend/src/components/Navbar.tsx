@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import * as React from 'react';
 
 const Navbar: React.FC = () => {
@@ -15,9 +16,15 @@ const Navbar: React.FC = () => {
 
             {/* Navigation Links */}
             <div className="hidden md:flex items-center gap-8">
-                <a href="#" className ="text-gray-500 hover:text-primary font-semibold transition-colors uppercase text-xs tracking-widest">Dashboard</a>
-                <a href="#" className ="text-gray-500 hover:text-primary font-semibold transition-colors uppercase text-xs tracking-widest">Closet</a>
-                <a href="#" className ="text-gray-500 hover:text-primary font-semibold transition-colors uppercase text-xs tracking-widest">Stylist Lab</a>
+                <Link to="/" className="text-gray-500 hover:text-primary font-semibold transition-colors uppercase text-xs tracking-widest">
+                    Dashboard
+                </Link>
+                <Link to="/closet" className="text-gray-500 hover:text-primary font-semibold transition-colors uppercase text-xs tracking-widest">
+                    Closet
+                </Link>
+                <Link to="#" className="text-gray-300 cursor-not-allowed font-semibold uppercase text-xs tracking widest">
+                    Stylist Lab
+                </Link>
             </div>
 
             {/* User Actions */}
