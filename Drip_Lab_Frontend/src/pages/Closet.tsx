@@ -1,9 +1,11 @@
 import * as React from 'react';
 import ClothingCard from '../components/ClothingCard';
+import {Navigate, useNavigate} from "react-router-dom";
 
 const Closet: React.FC = () => {
+    const navigate = useNavigate();
     const myItems = [
-        { id: 1, name: "Navy Trench", category: "Outwear", img: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=500" },
+        { id: 1, name: "Navy Trench", category: "Outerwear", img: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=500" },
         { id: 2, name: "Classic White Tee", category: "Tops", img: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500" },
         { id: 3, name: "Indigo Denim", category: "Bottoms", img: "https://images.unsplash.com/photo-1542272604-787c3835535d?w=500" },
     ];
@@ -15,7 +17,7 @@ const Closet: React.FC = () => {
                     <h2 className="text-4xl font-black text-primary italic uppercase tracking-tighter">My Closet</h2>
                     <p className="text-gray-400 text-sm tracking-widest mt-2 uppercase ">{myItems.length} Items Digitized</p>
                 </div>
-                <button className="bg-primary text-white px-6 py-3 rounded-full font-bold uppercase text-xs tracking-widest hover:bg-blue-900 transition-all">
+                <button onClick={() => navigate('/add-item')} className="...">
                     + Add New Item
                 </button>
             </div>

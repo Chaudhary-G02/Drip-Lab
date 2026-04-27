@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/db';
+import Item from './models/Item';
 
 dotenv.config();
 
@@ -18,6 +19,26 @@ app.get('/api/health', (_req: Request, res: Response) => {
         message: "Drip-Lab API is live!",
         status: "Healthy"
     });
+});
+
+
+app.post('/api/items/test', async (req, res) => {
+    try {
+        console.log("Data received:"), req.body;
+
+        const newItem = new Item({
+            name: req.body.name,
+            category: req.body.category,
+            imageUrl: req.body.imageUrl,
+            brand: req.body.brand
+        });
+
+        const savedItem = await newItem.save();
+        res.status(201).json(savedItem);
+    } catch (error: any) {
+        console.error("Mongoose Error:", error.message);
+        res.status(500).json({error: error.message });
+    }
 });
 
 app.listen(PORT, () => {

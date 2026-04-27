@@ -2,6 +2,7 @@
 import Navbar from './components/Navbar';
 import Dashboard from "./pages/Dashboard";
 import Closet from './pages/Closet';
+import AddItem from "./pages/Item";
 
 function App() {
     return (
@@ -14,6 +15,7 @@ function App() {
                     <Routes>
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/Closet" element={<Closet />} />
+                        <Route path="/add-item" element={<AddItem />} />
                     </Routes>
                 </main>
 
