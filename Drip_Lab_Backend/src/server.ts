@@ -41,6 +41,15 @@ app.post('/api/items/test', async (req, res) => {
     }
 });
 
+app.get('/api/items', async (req, res) => {
+    try {
+        const items = await Item.find().sort({ createdAt: -1 });
+        res.json(items);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch items" });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${ PORT }`);
 });
