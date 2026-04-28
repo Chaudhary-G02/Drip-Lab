@@ -21,7 +21,6 @@ app.get('/api/health', (_req: Request, res: Response) => {
     });
 });
 
-
 app.post('/api/items/test', async (req, res) => {
     try {
         const {name, category, gender, imageUrl, brand} = req.body;
