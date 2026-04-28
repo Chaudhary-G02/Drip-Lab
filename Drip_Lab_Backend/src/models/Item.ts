@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface Item extends Document {
     name: string;
     category: 'Tops' | 'Bottoms' | 'Outerwear' | 'Shoes' | 'Accessories';
+    gender: 'Men' | 'Women' | 'Unisex';
     imageUrl: string;
     brand?: string;
     color?: string;
@@ -14,7 +15,13 @@ const ItemSchema: Schema = new Schema({
     category: {
         type: String,
         required: true,
-        enum: ['Tops', 'Bottoms', 'Shoes', 'Accessories']
+        enum: ['Tops', 'Bottoms', 'Outerwear', 'Shoes', 'Accessories']
+    },
+    gender: {
+        type: String,
+        required: true,
+        enum: ['Men', 'Women', 'Unisex'],
+        default: 'Unisex'
     },
     imageUrl: { type: String, required: true },
     brand: { type: String },

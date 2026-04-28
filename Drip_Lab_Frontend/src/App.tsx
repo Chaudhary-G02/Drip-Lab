@@ -2,7 +2,7 @@
 import Navbar from './components/Navbar';
 import Dashboard from "./pages/Dashboard";
 import Closet from './pages/Closet';
-import AddItem from "./pages/Item";
+import AddItem from "./pages/AddItem";
 
 function App() {
     return (

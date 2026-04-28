@@ -24,13 +24,15 @@ app.get('/api/health', (_req: Request, res: Response) => {
 
 app.post('/api/items/test', async (req, res) => {
     try {
-        console.log("Data received:"), req.body;
+        const {name, category, gender, imageUrl, brand} = req.body;
+        console.log("Received Data:", {name, category,  gender });
 
         const newItem = new Item({
-            name: req.body.name,
-            category: req.body.category,
-            imageUrl: req.body.imageUrl,
-            brand: req.body.brand
+            name,
+            category,
+            gender: gender || 'Unisex',
+            imageUrl,
+            brand
         });
 
         const savedItem = await newItem.save();

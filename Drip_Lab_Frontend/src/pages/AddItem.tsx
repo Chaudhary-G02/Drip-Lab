@@ -7,6 +7,7 @@ const AddItem: React.FC = () => {
     const [category, setCategory] = useState('Tops');
     const [imageUrl, setImageUrl] = useState('');
     const navigate = useNavigate();
+    const [gender, setGender] = useState('Unisex');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,6 +54,26 @@ const AddItem: React.FC = () => {
                         <option>Outerwear</option>
                         <option>Shoes</option>
                     </select>
+                </div>
+
+                <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Section / Gender</p>
+                    <div className="flex gap-3">
+                        {['Men', 'Women', 'Unisex'].map((option) => (
+                            <button
+                            key={option}
+                            type="button"
+                            onClick={() => setGender(option)}
+                            className={`px-6 py-2 rounded-full text-xs font-bold transition-all border-2${
+                                gender === option 
+                                ? 'bg-primary border-primary text-white shadow-lg'
+                                    : 'bg-transparent border-gray-100 text-gray-400 hover:border-gray-200'
+                            }`}
+                            >
+                                {option}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 <div>
