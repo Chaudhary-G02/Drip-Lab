@@ -10,17 +10,27 @@ interface ClothingCardProps {
 
 const ClothingCard: React.FC<ClothingCardProps> =({ id, name, category, imageUrl, onDelete }) => {
  return (
-     <div className="realtive group bg-white rounded=2xl overflow-hidden shadow-sm hover:shadow-xl transition-all group cursor-pointer border border-gray-100">
+     <div className="relative bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 group">
 
-         {/* The Trash Button */}
+         {/* Permanent Delete Button */}
          <button
          onClick={(e) => {
              e.stopPropagation();
              onDelete(id);
          }}
-         className="absolute top-4 right-4 z-50 bg-red-500  text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+         className="absolute top-3 right-3 z-50 bg-white/90 backdrop-blur-md text-red-500 w-8 h-8 rounded-full flex items-center justify-center border border-gray-100 shadow-sm hover:text-white transition-all active:scale-90"
+         title="Remove Item"
          >
-             🗑️
+             <svg
+             xmlns="http://www.w3.org/2000/svg"
+             className="h-4 w-4"
+             fill="none"
+             viewBox="0 0 24 24"
+             stroke="currentColor"
+             strokeWidth={2.5}
+             >
+                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+             </svg>
          </button>
 
          {/* Image Container */}
