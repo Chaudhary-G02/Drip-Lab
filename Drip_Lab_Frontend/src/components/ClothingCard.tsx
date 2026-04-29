@@ -1,14 +1,28 @@
 import * as React from 'react';
 
 interface ClothingCardProps {
+    id: string;
     name: string;
     category: string;
     imageUrl: string;
+    onDelete: (id: string) => void;
 }
 
-const ClothingCard: React.FC<ClothingCardProps> =({ name, category, imageUrl }) => {
+const ClothingCard: React.FC<ClothingCardProps> =({ id, name, category, imageUrl, onDelete }) => {
  return (
-     <div className="bg-white rounded=2xl overflow-hidden shadow-sm hover:shadow-xl transition-all group cursor-pointer border border-gray-100">
+     <div className="realtive group bg-white rounded=2xl overflow-hidden shadow-sm hover:shadow-xl transition-all group cursor-pointer border border-gray-100">
+
+         {/* The Trash Button */}
+         <button
+         onClick={(e) => {
+             e.stopPropagation();
+             onDelete(id);
+         }}
+         className="absolute top-4 right-4 z-50 bg-red-500  text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+         >
+             🗑️
+         </button>
+
          {/* Image Container */}
          <div className="h-64 bg-slate-200 overflow-hidden relative">
              <img

@@ -51,6 +51,18 @@ app.get('/api/items', async (req, res) => {
     }
 });
 
+app.delete('/api/items/:id', async (req, res) => {
+    try {
+        const deleteItem = await Item.findByIdAndDelete(req.params.id);
+        if (!deleteItem) {
+            return res.status(404).json({ error: "Item not found" });
+        }
+        res.json({ message: "Item deleted successfully." });
+        } catch (error) {
+        res.status(500).json({ error: "Failed to delete item" });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${ PORT }`);
 });

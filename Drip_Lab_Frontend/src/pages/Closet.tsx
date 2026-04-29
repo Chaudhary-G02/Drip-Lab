@@ -9,13 +9,27 @@ const Closet: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [selectedGender, setSelectedGender] = useState('All');
 
+    const handleDelete = async (id: string) => {
+        if (window.confirm("Are you sure you want to remove this item?")) {
+            try {
+                await axios.delete(`http://localhost:5000/api/items/${id}`);
+                setItems(prevItems => prevItems.filter(item => item._id !== id));
+            } catch (error) {
+                console.error("Delete failed:", error);
+                alert(("Could not delete item."));
+            }
+        }
+    };
+
     useEffect(() => {
         const fetchItems = async () => {
             try {
-                const response = await axios.get('https://localhost:5000/api/items');
+                const response = await axios.get('http://localhost:5000/api/items');
                 setItems(response.data);
+                setLoading(false);
             } catch (error) {
                 console.error("Error fetching closet:", error);
+                setLoading(false);
             }
         };
         fetchItems();
@@ -56,7 +70,7 @@ const Closet: React.FC = () => {
                 </div>
 
                 <button
-                    onClick={() => navigate('/add/item')}
+                    onClick={() => navigate('/add-item')}
                     className="bg-primary text-white px-8 py-4 rounded-full font-bold uppercase text-xs tracking-widest hover:bg-blue-900 transition-all shadow-xl active:sclae:95"
                 >
                     + Add New Item
@@ -67,9 +81,11 @@ const Closet: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 {filteredItems.map((item) => (
                     <ClothingCard key={item._id}
+                                  id={item._id}
                                   name={item.name}
                                   category={item.category}
                                   imageUrl={item.imageUrl}
+                                  onDelete={handleDelete}
                     />
                 ))}
             </div>
