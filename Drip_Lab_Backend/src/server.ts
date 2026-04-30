@@ -1,18 +1,37 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import  multer from 'multer';
+import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 import connectDB from './config/db';
 import Item from './models/Item';
 
 dotenv.config();
-
-connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: async (req, file) => {
+        return {
+            folder: 'drip_lab_closet',
+            allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+        };
+    },
+});
+
+const upload = multer({ storage: storage });
 
 app.get('/api/health', (_req: Request, res: Response) => {
     res.json({
@@ -21,24 +40,27 @@ app.get('/api/health', (_req: Request, res: Response) => {
     });
 });
 
-app.post('/api/items/test', async (req, res) => {
+app.post('/api/items', upload.single('image'), async (req: any, res: Response) => {
     try {
-        const {name, category, gender, imageUrl, brand} = req.body;
-        console.log("Received Data:", {name, category,  gender });
+        const {name, category, gender} = req.body;
+        const imageUrl = req.file ? req.file.path : '';
+
+        if (!imageUrl) {
+            return res.status(400).json({error: "Image upload failed."});
+        }
 
         const newItem = new Item({
             name,
             category,
             gender: gender || 'Unisex',
-            imageUrl,
-            brand
+            imageUrl
         });
 
         const savedItem = await newItem.save();
         res.status(201).json(savedItem);
-    } catch (error: any) {
-        console.error("Mongoose Error:", error.message);
-        res.status(500).json({error: error.message });
+    } catch (error: any)  {
+    console.error("Upload Error:", error.message);
+    res.status(500).json({error: error.message});
     }
 });
 
@@ -63,6 +85,13 @@ app.delete('/api/items/:id', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${ PORT }`);
+connectDB()
+    .then(() => {
+        app.listen(PORT, () => {
+      console.log(`Database Connected & Server running at http://localhost:${PORT}`);
+    });
+})
+.catch((err) => {
+    console.error("Database connection failed. Server not started.", err);
+    process.exit(1);
 });
