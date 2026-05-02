@@ -1,7 +1,12 @@
-import { Link } from 'react-router-dom';
+import {Link, NavLink} from 'react-router-dom';
 import * as React from 'react';
 
 const Navbar: React.FC = () => {
+    const linkStyles =({ isActive }: {isActive: boolean}) =>
+        `font-semibold uppercase text-xs tracking-widest transition-colors ${ 
+            isActive ? 'text-primary' : 'text-gray-400 hover:text-primary'
+        }`;
+
     return (
         <nav className="w-full h-20 bg-white border-b border-gray-100 flex items-center justify-between px-10 fixed top-0 z-50">
             {/* Brand Logo */}
@@ -16,20 +21,20 @@ const Navbar: React.FC = () => {
 
             {/* Navigation Links */}
             <div className="hidden md:flex items-center gap-8">
-                <Link to="/" className="text-gray-500 hover:text-primary font-semibold transition-colors uppercase text-xs tracking-widest">
+                <NavLink to="/" className={linkStyles}>
                     Dashboard
-                </Link>
-                <Link to="/closet" className="text-gray-500 hover:text-primary font-semibold transition-colors uppercase text-xs tracking-widest">
+                </NavLink>
+                <NavLink to="/closet" className={linkStyles}>
                     Closet
-                </Link>
-                <Link to="#" className="text-gray-300 cursor-not-allowed font-semibold uppercase text-xs tracking widest">
-                    Stylist Lab
-                </Link>
+                </NavLink>
+                <NavLink to="/stylist-lab" className={linkStyles}>
+                    StylistLab
+                </NavLink>
             </div>
 
             {/* User Actions */}
             <div className="flex items-center gap-4">
-                <button className="bg-slate-100 text-primary px-4 py-2 rounded-full text-xs uppercase tracking-wider hover:bg-accent transition-all">
+                <button className="bg-slate-100 text-primary px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-gray-100 hover:bg-white hover:shadow-md transition-all">
                     My Account
                 </button>
             </div>

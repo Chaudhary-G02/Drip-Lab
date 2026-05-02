@@ -6,6 +6,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import connectDB from './config/db';
 import Item from './models/Item';
+import Outfit from './models/Outfit';
 
 dotenv.config();
 
@@ -56,6 +57,22 @@ app.post('/api/items', upload.single('image'), async (req: any, res: Response) =
             imageUrl
         });
 
+app.post('/api/outfits', async (req: Request, res: Response) => {
+    try {
+        const { name, itemIds } = req.body;
+        const newOutfit = new Outfit({
+            name,
+            items: itemIds
+        });
+
+        const savedOutfit = await newOutfit.save();
+        const populatedOutfit = await savedOutfit.populate('items');
+    res.status(201).json(populatedOutfit);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
         const savedItem = await newItem.save();
         res.status(201).json(savedItem);
     } catch (error: any)  {
@@ -72,6 +89,15 @@ app.get('/api/items', async (req, res) => {
         res.status(500).json({ error: "Failed to fetch items" });
     }
 });
+
+app.get('/api/outfits', async (req, res) => {
+    try {
+        const outfits = await Outfit.find().populate('items').sort({ createdAt: -1});
+        res.json(outfits);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch outfits"});
+    }
+})
 
 app.delete('/api/items/:id', async (req, res) => {
     try {

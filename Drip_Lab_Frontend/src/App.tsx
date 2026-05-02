@@ -3,11 +3,12 @@ import Navbar from './components/Navbar';
 import Dashboard from "./pages/Dashboard";
 import Closet from './pages/Closet';
 import AddItem from "./pages/AddItem";
+import StylistLab from "./pages/StylistLab";
 
 function App() {
     return (
         <Router>
-            <div className="min-h-screen w-full bg-slate-50 flex flex-col font-s<ans">
+            <div className="min-h-screen w-full bg-slate-50 flex flex-col font-sans">
                 <Navbar />
 
                 {/* The Routing Switchboard */}
@@ -16,6 +17,7 @@ function App() {
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/Closet" element={<Closet />} />
                         <Route path="/add-item" element={<AddItem />} />
+                        <Route path="/stylist-lab" element={<StylistLab />} />
                     </Routes>
                 </main>
 
