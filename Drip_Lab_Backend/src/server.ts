@@ -65,6 +65,28 @@ app.post('/api/items', upload.single('image'), async (req: any, res: Response) =
     }
 });
 
+
+app.get('/api/items', async (req, res) => {
+    try {
+        const items = await Item.find().sort({ createdAt: -1 });
+        res.json(items);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch items" });
+    }
+});
+
+app.delete('/api/items/:id', async (req, res) => {
+    try {
+        const deleteItem = await Item.findByIdAndDelete(req.params.id);
+        if (!deleteItem) {
+            return res.status(404).json({ error: "Item not found" });
+        }
+        res.json({ message: "Item deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to delete item" });
+    }
+});
+
 app.post('/api/outfits', async (req: Request, res: Response) => {
     try {
         const { name, itemIds } = req.body;
@@ -80,18 +102,9 @@ app.post('/api/outfits', async (req: Request, res: Response) => {
             console.log("Confirmed: Outfit saved to Atlas with ID:", savedOutfit._id);
         }
         const populatedOutfit = await savedOutfit.populate('items');
-    res.status(201).json(populatedOutfit);
+        res.status(201).json(populatedOutfit);
     } catch (error: any) {
         res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/api/items', async (req, res) => {
-    try {
-        const items = await Item.find().sort({ createdAt: -1 });
-        res.json(items);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to fetch items" });
     }
 });
 
@@ -105,15 +118,18 @@ app.get('/api/outfits', async (req, res) => {
     }
 })
 
-app.delete('/api/items/:id', async (req, res) => {
+app.delete('/api/outfits/:id', async (req: Request, res: Response) => {
     try {
-        const deleteItem = await Item.findByIdAndDelete(req.params.id);
-        if (!deleteItem) {
-            return res.status(404).json({ error: "Item not found" });
+        const deleteOutfit = await Outfit.findByIdAndDelete(req.params.id);
+
+        if (!deleteOutfit) {
+            return res.status(404).json({ error: "Outfit not found" });
         }
-        res.json({ message: "Item deleted successfully." });
-        } catch (error) {
-        res.status(500).json({ error: "Failed to delete item" });
+
+        console.log(`🗑️Deleted Outfit: ${req.params.id}`);
+        res.json({message: "Outfit deleted successfully."});
+    } catch (error: any) {
+        res.status(500).json({error: "Failed to delete Outfit"});
     }
 });
 
