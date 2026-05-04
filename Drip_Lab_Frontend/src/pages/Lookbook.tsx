@@ -1,9 +1,11 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios';
+import OutfitModal from "../components/OutfitModal";
 
 const Lookbook: React.FC = () => {
     const [outfits, setOutfits] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedOutfit, setSelectedOutfit] = useState<any>(null);
 
     useEffect(() => {
         const fetchOutfits = async () => {
@@ -71,12 +73,22 @@ const Lookbook: React.FC = () => {
                                 ))}
                         </div>
 
-                        <button className="w-full py-4 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:bg-primary hover:text-white transition-all">
+                        <button
+                            onClick={() => {
+                                console.log("Detail Button Clicked for:", outfit.name);
+                                setSelectedOutfit(outfit);
+                            }}
+                            className="w-full py-4 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:bg-primary hover:text-white transition-all">
                             View Full Details
                         </button>
                     </div>
                 ))}
             </div>
+
+            {selectedOutfit && (
+                <OutfitModal outfit={selectedOutfit} onClose={() => setSelectedOutfit(null)}
+                />
+            )}
 
             {outfits.length === 0 && !loading &&(
                 <div className="text-center py-20 bg-white rounded-[3rem] border border-dashed border-slate-200">
