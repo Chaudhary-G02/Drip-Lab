@@ -1,9 +1,24 @@
-import * as React from 'react';
+import React, {useState, useEffect} from 'react';
+import axios from "axios";
 import { DripButton} from "../components/DripButton";
 import { useNavigate } from "react-router-dom";
+import DashboardStats from "../components/DashboardStats";
 
 const Dashboard: React.FC = () => {
     const navigate = useNavigate();
+    const [stats, setStats] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const response = await axios.get('http://localhost:5000/api/stats');
+                setStats(response.data);
+            } catch (error) {
+                console.error("Dashboard sync failed:", error);
+            }
+        };
+        fetchStats();
+    }, []);
 
     return (
         <div className="flex flex-col items-center justify-center pt-20 px-6">
@@ -17,8 +32,12 @@ const Dashboard: React.FC = () => {
                 </p>
             </div>
 
+            <div className="w-full mb-12">
+                <DashboardStats stats={stats} />
+            </div>
+
             {/* Main Controls */}
-            <div className="w-full max-w-sm">
+            <div className="w-full max-w-sm flex flex-col gap-4">
                 <DripButton
                     title= "Access Digital Closet"
                     onPress={() => navigate('/Closet')}
@@ -26,8 +45,12 @@ const Dashboard: React.FC = () => {
                 <DripButton
                     title = "Open Stylist Lab"
                     variant="accent"
-                    onPress={() => console.log('AI Lab is locked')}
+                    onPress={() => navigate('/StylistLab')}
                     />
+                <DripButton
+                title = "View Lookbook"
+                onPress={() => navigate('/Lookbook')}
+                />
             </div>
         </div>
     );
