@@ -18,7 +18,7 @@ function App() {
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/Closet" element={<Closet />} />
                         <Route path="/add-item" element={<AddItem />} />
-                        <Route path="/stylist-lab" element={<StylistLab />} />
+                        <Route path="/StylistLab" element={<StylistLab />} />
                         <Route path="/lookbook" element={<Lookbook />} />
                     </Routes>
                 </main>
