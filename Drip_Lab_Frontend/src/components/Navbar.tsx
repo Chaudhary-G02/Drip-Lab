@@ -30,6 +30,9 @@ const Navbar: React.FC = () => {
                 <NavLink to="/stylist-lab" className={linkStyles}>
                     StylistLab
                 </NavLink>
+                <NavLink to="/lookbook" className={linkStyles}>
+                    Lookbook
+                </NavLink>
             </div>
 
             {/* User Actions */}

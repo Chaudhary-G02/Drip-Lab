@@ -57,27 +57,32 @@ app.post('/api/items', upload.single('image'), async (req: any, res: Response) =
             imageUrl
         });
 
+        const savedItem = await newItem.save();
+        res.status(201).json(savedItem);
+    } catch (error: any) {
+        console.error("Upload Error:", error.message);
+        res.status(500).json({error: error.message});
+    }
+});
+
 app.post('/api/outfits', async (req: Request, res: Response) => {
     try {
         const { name, itemIds } = req.body;
+        console.log("Saving Outfit:", {name, itemIds});
+
         const newOutfit = new Outfit({
             name,
             items: itemIds
         });
 
         const savedOutfit = await newOutfit.save();
+        if (savedOutfit) {
+            console.log("Confirmed: Outfit saved to Atlas with ID:", savedOutfit._id);
+        }
         const populatedOutfit = await savedOutfit.populate('items');
     res.status(201).json(populatedOutfit);
     } catch (error: any) {
         res.status(500).json({ error: error.message });
-    }
-});
-
-        const savedItem = await newItem.save();
-        res.status(201).json(savedItem);
-    } catch (error: any)  {
-    console.error("Upload Error:", error.message);
-    res.status(500).json({error: error.message});
     }
 });
 
@@ -93,6 +98,7 @@ app.get('/api/items', async (req, res) => {
 app.get('/api/outfits', async (req, res) => {
     try {
         const outfits = await Outfit.find().populate('items').sort({ createdAt: -1});
+        console.log(`Sending ${outfits.length} outfits to frontend`);
         res.json(outfits);
     } catch (error) {
         res.status(500).json({ error: "Failed to fetch outfits"});

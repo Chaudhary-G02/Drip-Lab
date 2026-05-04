@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import Closet from './pages/Closet';
 import AddItem from "./pages/AddItem";
 import StylistLab from "./pages/StylistLab";
+import Lookbook from "./pages/Lookbook";
 
 function App() {
     return (
@@ -18,6 +19,7 @@ function App() {
                         <Route path="/Closet" element={<Closet />} />
                         <Route path="/add-item" element={<AddItem />} />
                         <Route path="/stylist-lab" element={<StylistLab />} />
+                        <Route path="/lookbook" element={<Lookbook />} />
                     </Routes>
                 </main>
 
