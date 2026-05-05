@@ -10,6 +10,11 @@ import Outfit from './models/Outfit';
 import {GoogleGenerativeAI} from "@google/generative-ai";
 
 dotenv.config();
+console.log("__________________________________");
+console.log("Loaded Keys:", Object.keys(process.env).filter(key => key.includes('API') || key.includes('Key')));
+const geminikey = process.env.GEMINI_API_KEY;
+console.log("Checking API Key...", geminikey ? "Key Found" : "Key Missing");
+console.log("___________________________________");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -17,8 +22,8 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
-const model = genAI.getGenerativeModel({model: "gemini-1.5-flash"});
+const genAI = new GoogleGenerativeAI(geminikey || "");
+const model = genAI.getGenerativeModel({model: "gemini-2.5-flash"});
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -43,7 +48,7 @@ app.post('/api/ai/recommend', async (req: Request, res: Response) => {
         const {scenario} = req.body;
         console.log("AI Request for Scenario:", scenario);
         const closetItems = await Item.find().select('name category gender _id');
-        if(!closetItems.length) {
+        if (!closetItems.length) {
             return res.status(400).json({error: "Your Closet is empty. Add items first!"});
         }
         const prompt = `
@@ -58,14 +63,33 @@ app.post('/api/ai/recommend', async (req: Request, res: Response) => {
         }
         `;
 
-       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            throw new Error("AI did not return a valid JSON object.");
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const responseText = response.text();
+        console.log("AI Raw Response:", responseText);
+
+        if (!responseText) {
+            throw new Error("Gemini returned an empty response.");
         }
-        const recommendation = JSON.parse(jsonMatch[0]);
-        res.json(recommendation);
+        const firstBracket = responseText.indexOf('{');
+        const lastBracket = responseText.lastIndexOf('}');
+
+        if (firstBracket === -1 || lastBracket === -1) {
+            console.error("No JSON found in response:", responseText);
+            return res.status(500).json({error: "AI response was not in a valid format."});
+        }
+
+        const jsonString = responseText.substring(firstBracket, lastBracket + 1);
+
+        try {
+            const recommendation = JSON.parse(jsonString);
+            res.json(recommendation);
+        } catch (parseError) {
+            console.error("JSON Parse Error:", jsonString);
+            res.status(500).json({error: "AI failed to generate suggestion."});
+        }
     } catch (error: any) {
-        console.error("AI Stylist Error:", error);
+        console.error("AI Stylist Error:", error.message);
         res.status(500).json({error: "AI failed to generate suggestion."});
     }
 });
