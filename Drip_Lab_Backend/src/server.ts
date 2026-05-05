@@ -41,26 +41,29 @@ const upload = multer({ storage: storage });
 app.post('/api/ai/recommend', async (req: Request, res: Response) => {
     try {
         const {scenario} = req.body;
+        console.log("AI Request for Scenario:", scenario);
         const closetItems = await Item.find().select('name category gender _id');
+        if(!closetItems.length) {
+            return res.status(400).json({error: "Your Closet is empty. Add items first!"});
+        }
         const prompt = `
-        You are the "Drip-Lab AI Stylist".
-        A user needs an outfit for this scenario: "${scenario}".
-        
-        Here is their closet data: ${JSON.stringify(closetItems)};
-        
-        Based on the scenario , pick 2 to 4 items.
-        Return ONLY a JSON object with this exact structure:
+        Context: You are a professional fashion stylist.
+        User's Closet: ${JSON.stringify(closetItems)}
+        Task: Pick 2-4 items for this scenario: "${scenario}"
+        Requirement: Return ONLY a JSON object. No conversational text.
+        Structure:
         {
-        "reasoning": "A short explanation of why these items fit the scenario",
+        "reasoning": "string",
         "selectedIds": ["id1", "id2"]
         }
         `;
 
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
-
-        const cleanJson = responseText.replace(/```json|```/g,"").trim();
-        res.json(JSON.parse(cleanJson));
+       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            throw new Error("AI did not return a valid JSON object.");
+        }
+        const recommendation = JSON.parse(jsonMatch[0]);
+        res.json(recommendation);
     } catch (error: any) {
         console.error("AI Stylist Error:", error);
         res.status(500).json({error: "AI failed to generate suggestion."});
