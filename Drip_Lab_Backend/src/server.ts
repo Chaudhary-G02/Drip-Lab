@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, {Request, response, Response} from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import  multer from 'multer';
@@ -7,6 +7,7 @@ import { CloudinaryStorage } from "multer-storage-cloudinary";
 import connectDB from './config/db';
 import Item from './models/Item';
 import Outfit from './models/Outfit';
+import {GoogleGenerativeAI} from "@google/generative-ai";
 
 dotenv.config();
 
@@ -15,6 +16,9 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
+const model = genAI.getGenerativeModel({model: "gemini-1.5-flash"});
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -33,6 +37,35 @@ const storage = new CloudinaryStorage({
 });
 
 const upload = multer({ storage: storage });
+
+app.post('/api/ai/recommend', async (req: Request, res: Response) => {
+    try {
+        const {scenario} = req.body;
+        const closetItems = await Item.find().select('name category gender _id');
+        const prompt = `
+        You are the "Drip-Lab AI Stylist".
+        A user needs an outfit for this scenario: "${scenario}".
+        
+        Here is their closet data: ${JSON.stringify(closetItems)};
+        
+        Based on the scenario , pick 2 to 4 items.
+        Return ONLY a JSON object with this exact structure:
+        {
+        "reasoning": "A short explanation of why these items fit the scenario",
+        "selectedIds": ["id1", "id2"]
+        }
+        `;
+
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+
+        const cleanJson = responseText.replace(/```json|```/g,"").trim();
+        res.json(JSON.parse(cleanJson));
+    } catch (error: any) {
+        console.error("AI Stylist Error:", error);
+        res.status(500).json({error: "AI failed to generate suggestion."});
+    }
+});
 
 app.get('/api/health', (_req: Request, res: Response) => {
     res.json({

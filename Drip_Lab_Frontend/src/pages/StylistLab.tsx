@@ -9,6 +9,9 @@ const StylistLab: React.FC = () => {
     const [outfitName, setOutfitName] = useState('');
     const [loading, setLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState('All');
+    const [scenario, setScenario] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
+    const[aiReasoning, setAiReasoning] = useState('');
 
     useEffect(() => {
         const fetchItems = async () => {
@@ -24,7 +27,26 @@ const StylistLab: React.FC = () => {
         fetchItems();
     }, []);
 
-    const toggleItemSelectiom = (item: any) => {
+    const handleAISuggestion = async () => {
+        if (!scenario) return alert("Enter a scenario for the AI!");
+        setIsGenerating(true);
+        try {
+            const response = await axios.post('http://localhost:5000/api/ai/recommend',{scenario});
+            const {reasoning, selectedIds} = response.data;
+
+            const suggestedItems = items.filter(i => selectedIds.includes(i._id));
+            setSelectedItems(suggestedItems);
+            setAiReasoning(reasoning);
+            setOutfitName(`${scenario.slice(0, 15)}...Look`);
+        } catch (error) {
+            console.error("AI Error:", error);
+            alert("The Stylist is busy. Try again later.");
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const toggleItemSelection = (item: any) => {
         if (selectedItems.find(i => i._id === item._id)) {
             setSelectedItems(selectedItems.filter(i => i._id !== item._id));
         } else {
@@ -76,7 +98,7 @@ const StylistLab: React.FC = () => {
                     {filteredItems.map(item => (
                         <div
                         key={item._id}
-                        onClick={() => toggleItemSelectiom(item)}
+                        onClick={() => toggleItemSelection(item)}
                         className={`relative group cursor-pointer rounded-2xl overflow-hidden border-2 transition-all ${selectedItems.find(i => i._id === item._id) ? 'border-primary shadow-lg scale-[0.98]' : 'border-transparent opacity-80 hover:opacity-100'}`}
                         >
                             <img src={item.imageUrl} alt={item.name} className="h-48 w-full object-cover" />
@@ -93,35 +115,62 @@ const StylistLab: React.FC = () => {
                 </div>
             </div>
 
-            {/* RIGHT SIDE: The Canvas */}
-            <div className="w-1/2 p-12 flex flex-col">
-                <div className="flex justify-between items-center mb-10">
+            {/* RIGHT SIDE: AI Canvas */}
+            <div className="flex-1 p-12 flex flex-col bg-slate-50">
+                <div className="bg-white p-6 rounded-[2.5rem] shadow-sm mb-8 border border-slate-200">
+                    <div className="flex items-center gap-4">
+                        <div className="bg-primary text-white p-3 rounded-2xl animate-pulse">
+                            <span className="text-xl">🤖</span>
+                        </div>
+                        <input
+                        type="text"
+                        placeholder="TELL THE AI YOUR SCENARIO (e.g. College fest...)"
+                        value={scenario}
+                        onChange={(e) => setScenario(e.target.value)}
+                        className="flex-1 bg-slate-50 rounded-2xl px-6 py-4 text-xs font-bold uppercase tracking-widest outline-none focus:ring-2 focus:ring-primary/20"
+                        />
+                        <button
+                            onClick={handleAISuggestion}
+                        disabled={isGenerating}
+                        className="bg-primary text-white px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-900 disabled:opacity-50 transition-all"
+                        >
+                            {isGenerating ? "Reasoning..." : "Generate Look"}
+                        </button>
+                    </div>
+                    {aiReasoning && (
+                        <p className="mt-4 px-4 text-[10px] font-bold text-blue-500 uppercase italic tracking-wider">
+                            AI Reasoning: {aiReasoning}
+                        </p>
+                    )}
+                </div>
+
+                <div className="flex justify-between items-center mb-6">
                     <input
                     type="text"
                     placeholder="NAME YOUR LOOK..."
                     value={outfitName}
                     onChange={(e) => setOutfitName(e.target.value)}
-                    className="bg-transparent text-2xl font-black italic uppercase text-primary outline-none border-b-2 border-primary/20 focus:border-primary transition-all w-2/3"
+                    className="bg-transparent text-xl font-black italic uppercase text-primary outline-none border-b-2 border-primary/20 w-1/2"
                     />
                     <button
                     onClick={handleSaveOutfit}
-                    className="bg-primary text-white px-8 py-4 rounded-2xl font-bold uppercase text-xs tracking-[0.2em] shadow-xl hover:bg-blue-900 active:scale-95 transition-all"
+                    className="bg-white border-2 border-primary text-primary px-8 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-primary hover:text-white transition-all"
                     >
-                        Save Look
+                        Save Look to Atlas
                     </button>
                 </div>
 
                 <div className="flex-1 bg-white rounded-[3rem] shadow-inner border border-slate-100 relative flex flex-wrap items-center justify-center p-10 gap-6 overflow-y-auto">
                     {selectedItems.length === 0 ? (
                         <div className="text-center opacity-20">
-                            <span className="text-8xl">✨</span>
+                            <span className="text-8xl">🧥</span>
                             <p className="font-black uppercase tracking-[0.5em] mt-4">Select items to start styling</p>
                         </div>
                     ) : (
                         selectedItems.map(item => (
                             <div key={item._id} className="w-48 bg-slate-50 p-2 rounded-2xl shadow-sm border border-slate-100 relative group animate-in fade-in zoom-in duration-300">
                                 <img src={item.imageUrl} alt={item.name} className="h-48 w-full object-cover rounded-xl" />
-                                <button onClick={(e) => {e.stopPropagation(); toggleItemSelectiom(item); }}
+                                <button onClick={(e) => {e.stopPropagation(); toggleItemSelection(item); }}
                                 className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
