@@ -197,13 +197,11 @@ app.get('/api/stats', async (req: Request, res: Response) => {
     try {
         const itemCount = await Item.countDocuments();
         const outfitCount = await Outfit.countDocuments();
-        const latestOutfit = await Outfit.findOne()
-            .sort({ createdAt: -1 })
-            .populate('items');
+
         res.json({
             totalItems: itemCount,
             totalOutfits: outfitCount,
-            latestLook: latestOutfit
+            latestLook: await Outfit.findOne().sort({ createdAt: -1 }).populate('items')
         });
     } catch (error: any) {
         res.status(500).json({ error: "Failed to fetch stats" });
