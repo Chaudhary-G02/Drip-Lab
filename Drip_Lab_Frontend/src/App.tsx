@@ -16,10 +16,10 @@ function App() {
                 {/* The Routing Switchboard */}
                 <main className="flex-1 pt-16">
                     <Routes>
-                        <Route path="/" element={<Dashboard />} />
-                        <Route path="/Closet" element={<Closet />} />
+                        <Route path="/" element={<Profile />} />
+                        <Route path="/closet" element={<Closet />} />
                         <Route path="/add-item" element={<AddItem />} />
-                        <Route path="/stylistlab" element={<StylistLab />} />
+                        <Route path="/stylist-lab" element={<StylistLab />} />
                         <Route path="/lookbook" element={<Lookbook />} />
                         <Route path="/profile" element={<Profile />} />
                     </Routes>
