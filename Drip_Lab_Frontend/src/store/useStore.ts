@@ -13,6 +13,7 @@ export interface Outfit {
     _id: string;
     name: string;
     items: Item[];
+    createdAt?: string;
 }
 
 interface DripState {
