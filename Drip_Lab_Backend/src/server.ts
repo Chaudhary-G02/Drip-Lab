@@ -103,28 +103,70 @@ app.get('/api/health', (_req: Request, res: Response) => {
 
 app.post('/api/items', upload.single('image'), async (req: any, res: Response) => {
     try {
-        const {name, category, gender} = req.body;
+        let {name, category, gender} = req.body;
         const imageUrl = req.file ? req.file.path : '';
 
         if (!imageUrl) {
             return res.status(400).json({error: "Image upload failed."});
         }
+        let aiColor = undefined;
+        let aiStyle = undefined;
 
+        try {
+            console.log("Analyzing image with Gemini Vision...");
+            const imageResp = await fetch(imageUrl);
+            const arrayBuffer = await imageResp.arrayBuffer();
+            const base64Image = Buffer.from(arrayBuffer).toString('base64');
+
+            const prompt = `Analyze this clothing item. Return ONLY a JSON object with the following keys. No markdown formatting, just the raw JSON.
+        {"category": "Choose one: Tops, Bottoms, Outerwear, Shoes, Accessories",
+        "color": "Primary color (e.g., navy Blue, Heather Grey, Black, Red)",
+        "style": "Style vibe (e.g., Casual, Streetwear, Formal, Athletic, Vintage)"}`;
+
+            const result = await model.generateContent([prompt,
+                {
+                    inlineData: {
+                        data: base64Image,
+                        mimeType: req.file.mimetype || 'image/jpeg'
+                    }
+                }
+            ]);
+
+            const responseText = await result.response.text();
+            console.log("Raw Vision Response:", responseText);
+            const firstBracket = responseText.indexOf('{');
+            const lastBracket = responseText.lastIndexOf('}');
+            if (firstBracket !== -1 && lastBracket !== -1) {
+                const jsonString = responseText.substring(firstBracket, lastBracket + 1);
+                const aiTags = JSON.parse(jsonString);
+                if (!category || category === '') {
+                    category = aiTags.category;
+                }
+                aiColor = aiTags.color;
+                aiStyle = aiTags.style;
+
+                if (!name || name === '') {
+                    name = `${aiColor} ${category} - ${aiStyle}`;
+                }
+            }
+        } catch (aiError) {
+            console.error("AI Auto-Tagging failed, falling back to manual tags:", aiError);
+        }
         const newItem = new Item({
-            name,
-            category,
+            name: name || "Unnamed Item",
+            category: category || 'Accessories',
             gender: gender || 'Unisex',
-            imageUrl
+            imageUrl,
+            color: aiColor,
+            style: aiStyle
         });
-
         const savedItem = await newItem.save();
         res.status(201).json(savedItem);
     } catch (error: any) {
-        console.error("Upload Error:", error.message);
+        console.error("Upload error:", error.message);
         res.status(500).json({error: error.message});
     }
 });
-
 
 app.get('/api/items', async (req, res) => {
     try {

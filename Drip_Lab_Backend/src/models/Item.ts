@@ -7,6 +7,7 @@ export interface Item extends Document {
     imageUrl: string;
     brand?: string;
     color?: string;
+    style? : string;
     createdAt: Date;
 }
 
@@ -26,7 +27,8 @@ const ItemSchema: Schema = new Schema({
     imageUrl: { type: String, required: true },
     brand: { type: String },
     color: { type: String },
+    style: { type: String },
     createdAt: { type: Date, default: Date.now }
 });
 
-export default mongoose.model('Item', ItemSchema);
+export default mongoose.model<Item>('Item', ItemSchema);
