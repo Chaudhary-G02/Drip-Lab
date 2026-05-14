@@ -47,6 +47,10 @@ const AddItem: React.FC = () => {
     return (
         <div className="max-w-md mx-auto mt-20 p-8 bg-white rounded-3xl shadow-xl border border-gray-100">
             <h2 className="text-3xl font-black italic text-primary mb-6 uppercase tracking-tighter">Digitize Item</h2>
+            {/* AI Auto-Tagging Banner */}
+            <div className="bg-purple-100 text-purple-700 p-3 rounded-lg text-xs font-bold flex items-center gap-2 mb-6">
+                <span>✨</span> Gemini Vision will automatically detect Name, Category, Color, and Style!
+            </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
             {/* 1. File Upload With Preview */}
@@ -69,16 +73,15 @@ const AddItem: React.FC = () => {
                 />
             </div>
 
-            {/* 2. Item Name */}
+            {/* 2. Item Name (Optional) */}
             <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Item
-                    Name</label>
-                <input
-                    placeholder="e.g. Oversized Black Hoodie"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                />
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Item Name
+                    <span className="text-purple-500 normal-case">(Optional)</span>
+                </label>
+                <input className="w-full p-4 bg-slate-50 rounded-xl border-none focus:ring-primary outline-none font-bold text-sm"
+                placeholder="Leave blank for AI auto-tagging"
+                value={name}
+                onChange={(e) => setName(e.target.value)}/>
             </div>
 
             {/* 3. Category Select */}
@@ -86,14 +89,16 @@ const AddItem: React.FC = () => {
                 <label
                     className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Category</label>
                 <select
-                    className="w-full p-4 bg-slate-50 rounded-xl border-none focus:ring-primary outline-none font-bold text-sm"
+                    className="w-full p-4 bg-slate-50 rounded-xl border-none focus:ring-primary outline-none font-bold text-sm text-gray-700"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                 >
-                    <option>Tops</option>
-                    <option>Bottoms</option>
-                    <option>Outerwear</option>
-                    <option>Shoes</option>
+                    <option value="">✨ Auto-detect via AI</option>
+                    <option value="Tops">Tops</option>
+                    <option value="Bottoms">Bottoms</option>
+                    <option value="Outerwear">Outerwear</option>
+                    <option value="Shoes">Shoes</option>
+                    <option value="Accessories">Accessories</option>
                 </select>
             </div>
 
