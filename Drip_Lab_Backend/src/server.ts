@@ -31,15 +31,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: async (req, file) => {
-        return {
-            folder: 'drip_lab_closet',
-            allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
-        };
-    },
-});
+const storage = multer.memoryStorage();
 
 const upload = multer({ storage: storage });
 
@@ -104,19 +96,46 @@ app.get('/api/health', (_req: Request, res: Response) => {
 app.post('/api/items', upload.single('image'), async (req: any, res: Response) => {
     try {
         let {name, category, gender} = req.body;
-        const imageUrl = req.file ? req.file.path : '';
 
-        if (!imageUrl) {
+        if (!req.file || !req.file.buffer) {
             return res.status(400).json({error: "Image upload failed."});
         }
+        console.log("✂️ Removing background...");
+
+        const originalBase64 = req.file.buffer.toString('base64');
+        const removeBgResponse = await fetch('https://api.remove.bg/v1.0/removebg', {
+            method: 'POST',
+            headers: {'X-Api-Key': process.env.REMOVE_BG_API_KEY as string, 'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                image_file_b64: originalBase64,
+                size: 'auto'
+            })
+        });
+        if (!removeBgResponse.ok) {
+            const errText = await removeBgResponse.text();
+            console.error("Remove.bg error:", errText);
+            throw new Error("Failed to remove background.");
+        }
+        const noBgArrayBuffer = await removeBgResponse.arrayBuffer();
+        const noBgBuffer = Buffer.from(noBgArrayBuffer);
+        const noBgBase64 = noBgBuffer.toString('base64');
+        console.log("☁️ Uploading transparent image to Cloudinary...");
+
+        const imageUrl: string = await new Promise((resolve,reject) => {
+            const stream = cloudinary.uploader.upload_stream({folder: 'drip_lab_closet', format: 'png'},
+                (error, result) => {
+                    if (result) resolve(result.secure_url);
+                    else reject(error);
+                }
+            );
+            stream.end(noBgBuffer);
+        });
+
         let aiColor = undefined;
         let aiStyle = undefined;
 
         try {
-            console.log("Analyzing image with Gemini Vision...");
-            const imageResp = await fetch(imageUrl);
-            const arrayBuffer = await imageResp.arrayBuffer();
-            const base64Image = Buffer.from(arrayBuffer).toString('base64');
+            console.log("🧠 Analyzing transparent image with Gemini Vision...");
 
             const prompt = `Analyze this clothing item. Return ONLY a JSON object with the following keys. No markdown formatting, just the raw JSON.
         {"category": "Choose one: Tops, Bottoms, Outerwear, Shoes, Accessories",
@@ -126,8 +145,8 @@ app.post('/api/items', upload.single('image'), async (req: any, res: Response) =
             const result = await model.generateContent([prompt,
                 {
                     inlineData: {
-                        data: base64Image,
-                        mimeType: req.file.mimetype || 'image/jpeg'
+                        data: noBgBase64,
+                        mimeType: req.file.mimetype || 'image/png'
                     }
                 }
             ]);
