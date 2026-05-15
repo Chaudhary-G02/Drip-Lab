@@ -10,6 +10,7 @@ const StylistLab: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState('All');
     const [scenario, setScenario] = useState('');
+    const [location, setLocation] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const[aiReasoning, setAiReasoning] = useState('');
 
@@ -29,9 +30,11 @@ const StylistLab: React.FC = () => {
 
     const handleAISuggestion = async () => {
         if (!scenario) return alert("Enter a scenario for the AI!");
+        if (!location) alert("Pro-tip: Entering your city gives you weather-accurate outfits!");
+
         setIsGenerating(true);
         try {
-            const response = await axios.post('http://localhost:5000/api/ai/recommend',{scenario});
+            const response = await axios.post('http://localhost:5000/api/ai/recommend',{scenario,location});
             const {reasoning, selectedIds} = response.data;
 
             const suggestedItems = items.filter(i => selectedIds.includes(i._id));
@@ -119,20 +122,29 @@ const StylistLab: React.FC = () => {
             <div className="flex-1 p-12 flex flex-col bg-slate-50">
                 <div className="bg-white p-6 rounded-[2.5rem] shadow-sm mb-8 border border-slate-200">
                     <div className="flex items-center gap-4">
-                        <div className="bg-primary text-white p-3 rounded-2xl animate-pulse">
+                        <div className="bg-primary text-white p-3 rounded-2xl animate-pulse mt-1">
                             <span className="text-xl">🤖</span>
                         </div>
+                        <div className="flex-1 flex flex-col gap-3">
                         <input
                         type="text"
                         placeholder="TELL THE AI YOUR SCENARIO (e.g. College fest...)"
                         value={scenario}
                         onChange={(e) => setScenario(e.target.value)}
-                        className="flex-1 bg-slate-50 rounded-2xl px-6 py-4 text-xs font-bold uppercase tracking-widest outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full bg-slate-50 rounded-2xl px-6 py-4 text-xs font-bold uppercase tracking-widest outline-none focus:ring-primary/20"
                         />
+                        <input
+                        type="text"
+                        placeholder="CITY FOR WEATHER CHECK? (e.g. New York)"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        className="w-full bg-slate-50 rounded-2xl px-6 py-4 text-xs font-bold uppercase tracking-widest outline-none focus:ring-2 focus:ring-blue-400 border-l-4 border-blue-400"
+                        />
+                        </div>
                         <button
                             onClick={handleAISuggestion}
                         disabled={isGenerating}
-                        className="bg-primary text-white px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-900 disabled:opacity-50 transition-all"
+                        className="bg-primary text-white px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-900 disabled:opacity-50 transition-all self-stretch flex items-center justify-center"
                         >
                             {isGenerating ? "Reasoning..." : "Generate Look"}
                         </button>
