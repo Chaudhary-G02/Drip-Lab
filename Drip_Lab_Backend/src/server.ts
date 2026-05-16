@@ -262,6 +262,27 @@ app.get('/api/outfits', async (req, res) => {
     }
 })
 
+app.patch('/api/outfits/:id/feedback', async (req: Request, res: Response) => {
+    try {
+        const {feedback} = req.body;
+        if (!['like', 'dislike', 'none'].includes(feedback)) {
+            return res.status(400).json({error: "Invalid feedback value."});
+        }
+        const updatedOutfit = await Outfit.findByIdAndUpdate(
+            req.params.id,
+            {feedback},
+            {new: true}
+        ).populate('items');
+        if (!updatedOutfit) {
+            return res.status(404).json({error: "Outfit not found."});
+        }
+        res.json(updatedOutfit);
+    } catch (error: any) {
+        console.error("Feedback Error:", error.message);
+        res.status(500).json({error: "Failed to save feedback."});
+    }
+});
+
 app.delete('/api/outfits/:id', async (req: Request, res: Response) => {
     try {
         const deleteOutfit = await Outfit.findByIdAndDelete(req.params.id);
