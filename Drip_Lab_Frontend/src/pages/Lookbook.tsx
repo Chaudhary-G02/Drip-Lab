@@ -27,6 +27,15 @@ const Lookbook: React.FC = () => {
             alert("Failed to delete the outfit. Please try again.");
         }
     }
+    const handleFeedback = async (id:  string, feedbackStatus: 'like' | 'dislike') => {
+        try {
+            await axios.patch(`http://localhost:5000/api/outfits/${id}/feedback`, {feedback: feedbackStatus});
+            fetchOutfits();
+        } catch (error) {
+            console.error("Feedback failed:", error);
+            alert("Failed to save feedback.");
+        }
+    };
 
    const filteredOutfits = outfits.filter(outfit =>
    outfit.name.toLowerCase().includes(searchQuery.toLowerCase()) || outfit.items.some((item: any) => item.name.toLowerCase().includes(searchQuery.toLowerCase())));
@@ -83,6 +92,22 @@ const Lookbook: React.FC = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 71-.867 12.142A2 2 0 0116.138 21H7.862a2 2  0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                         </svg>
                     </button>
+
+                    {/* Feedback Button */}
+                    <div className="flex gap-2 mb-6">
+                        <button
+                        onClick={() => handleFeedback(outfit._id, 'like')}
+                        className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${outfit.feedback === 'like' ? 'bg-green-100 text-green-600 border border-green-200' : 'bg-slate-50 text-slate-400 hover:bg-green-50 hover:text-green-500'}`}
+                        >
+                            👍 Fire
+                        </button>
+                        <button
+                        onClick={() => handleFeedback(outfit._id, 'dislike')}
+                        className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${outfit.feedback === 'dislike' ? 'bg-red-100 text-red-600 border border-red-200' : 'bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500'}`}
+                        >
+                            👎 Miss
+                        </button>
+                    </div>
 
                     {/* Outfit Preview Grid */}
                     <div className="grid grid-cols-2 gap-3 mb-6 clear-both">

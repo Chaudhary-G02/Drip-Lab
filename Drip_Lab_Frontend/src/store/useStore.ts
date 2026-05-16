@@ -14,6 +14,8 @@ export interface Outfit {
     name: string;
     items: Item[];
     createdAt?: string;
+    reasoning?: string;
+    feedback?: 'like' | 'dislike';
 }
 
 interface DripState {
