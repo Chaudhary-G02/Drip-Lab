@@ -37,27 +37,50 @@ const upload = multer({ storage: storage });
 
 app.post('/api/ai/recommend', async (req: Request, res: Response) => {
     try {
-        const {scenario} = req.body;
-        console.log("AI Request for Scenario:", scenario);
-        const closetItems = await Item.find().select('name category gender _id');
+        const {scenario, location} = req.body;
+        console.log("🤖 AI Request - Scenario:", scenario, "|Location:", location || "Not provided");
+        const closetItems = await Item.find().select('name category gender color style _id');
         if (!closetItems.length) {
             return res.status(400).json({error: "Your Closet is empty. Add items first!"});
         }
-        const prompt = `
-        Context: You are a professional fashion stylist.
-        User's Closet: ${JSON.stringify(closetItems)}
-        Task: Pick 2-4 items for this scenario: "${scenario}"
-        Requirement: Return ONLY a JSON object. No conversational text.
-        Structure:
-        {
-        "reasoning": "string",
-        "selectedIds": ["id1", "id2"]
+        let weatherContext = "Unknown weather conditions. Assume a mild, general climate.";
+        if (location) {
+            try {
+                console.log(`🌤️ Fetching weather for ${location}...`);
+                const weatherRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${location}&units=metric&appid=${process.env.OPENWEATHER_API_KEY}`);
+                if (weatherRes.ok) {
+                    const weatherData = await weatherRes.json();
+                    const temp = weatherData.main.temp;
+                    const condition = weatherData.weather[0].description;
+                    weatherContext = `${temp}°C (${Math.round((temp * 9 / 5) + 32)}°F) and ${condition}.`;
+                    console.log("Weather fetched:", weatherContext);
+                } else {
+                    console.log("Weather API error. Proceeding without weather context.");
+                }
+            } catch (err) {
+                console.error("Failed to fetch weather:", err);
+            }
         }
+
+        const prompt = `
+        Context: You are a professional, high-end fashion stylist.
+        User's Closet: ${JSON.stringify(closetItems)}
+        Task Details: 
+        - Scenario: "${scenario}"
+        - Current Weather Context: ${weatherContext}
+        Instructions:
+        Pick 2-4 items from the User's Closet that perfectly match the Scenario AND the Weather Context.
+        Make sure not to suggest heavy coats for hot weather or shorts for freezing weather. 
+        Ensure the style and colors coordinate well.
+        Requirement: Return ONLY a JSON object. No markdown formatting. No conversational text.
+        Structure: 
+        { "reasoning": "Explain why these items work for thr scenario and the weather",
+                       "selectedIds:["id1", "id2"]
+        }  
         `;
 
         const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const responseText = response.text();
+        const responseText = await result.response.text();
         console.log("AI Raw Response:", responseText);
 
         if (!responseText) {
