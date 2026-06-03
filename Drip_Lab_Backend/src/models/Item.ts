@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface Item extends Document {
+    userId: string;
     name: string;
     category: 'Tops' | 'Bottoms' | 'Outerwear' | 'Shoes' | 'Accessories';
     gender: 'Men' | 'Women' | 'Unisex';
@@ -12,6 +13,7 @@ export interface Item extends Document {
 }
 
 const ItemSchema: Schema = new Schema({
+    userId: { type: String, required: true },
     name: { type: String, required: true },
     category: {
         type: String,
