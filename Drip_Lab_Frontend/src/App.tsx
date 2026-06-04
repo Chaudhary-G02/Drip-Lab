@@ -37,7 +37,7 @@ function App() {
                             <SignUp routing="path" path="/sign-up" signInUrl="/sign-in"/>
                         </div>
                     } />
-                    <Route path="/" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                    <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                     <Route path="/closet" element={<ProtectedRoute><Closet /></ProtectedRoute>} />
                     <Route path="/add-item" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
                     <Route path="/stylist-lab" element={<ProtectedRoute><StylistLab /></ProtectedRoute>} />

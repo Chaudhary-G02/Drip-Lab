@@ -1,5 +1,18 @@
 import {create} from 'zustand';
 import axios from 'axios';
+declare global {
+    interface Window {
+        Clerk: any,
+    }
+}
+axios.interceptors.request.use(async (config) => {
+    if (window.Clerk && window.Clerk.session) {
+        const token = await window.Clerk.session.getToken();
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+}, (error) => {return Promise.reject(error);
+});
 
 export interface Item {
     _id : string;

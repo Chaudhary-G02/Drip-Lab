@@ -1,3 +1,4 @@
+import { ClerkExpressRequireAuth} from "@clerk/clerk-sdk-node";
 import express, {Request, response, Response} from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -21,6 +22,7 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+app.use('/api', ClerkExpressRequireAuth());
 
 const genAI = new GoogleGenerativeAI(geminikey || "");
 const model = genAI.getGenerativeModel({model: "gemini-2.5-flash"});
@@ -35,11 +37,12 @@ const storage = multer.memoryStorage();
 
 const upload = multer({ storage: storage });
 
-app.post('/api/ai/recommend', async (req: Request, res: Response) => {
+app.post('/api/ai/recommend', async (req: any, res: Response) => {
     try {
         const {scenario, location} = req.body;
+        const userId = req.auth.userId;
         console.log("🤖 AI Request - Scenario:", scenario, "|Location:", location || "Not provided");
-        const closetItems = await Item.find().select('name category gender color style _id');
+        const closetItems = await Item.find({userId}).select('name category gender color style _id');
         if (!closetItems.length) {
             return res.status(400).json({error: "Your Closet is empty. Add items first!"});
         }
@@ -195,6 +198,7 @@ app.post('/api/items', upload.single('image'), async (req: any, res: Response) =
             console.error("AI Auto-Tagging failed, falling back to manual tags:", aiError);
         }
         const newItem = new Item({
+            userId: req.auth.userId,
             name: name || "Unnamed Item",
             category: category || 'Accessories',
             gender: gender || 'Unisex',
@@ -210,8 +214,9 @@ app.post('/api/items', upload.single('image'), async (req: any, res: Response) =
     }
 });
 
-app.get('/api/items', async (req, res) => {
+app.get('/api/items', async (req: any, res: Response) => {
     try {
+        const userId= req.auth.userId;
         const items = await Item.find().sort({ createdAt: -1 });
         res.json(items);
     } catch (error) {
@@ -231,12 +236,13 @@ app.delete('/api/items/:id', async (req, res) => {
     }
 });
 
-app.post('/api/outfits', async (req: Request, res: Response) => {
+app.post('/api/outfits', async (req: any, res: Response) => {
     try {
         const { name, itemIds } = req.body;
-        console.log("Saving Outfit:", {name, itemIds});
+        const userId = req.auth.userId;
 
         const newOutfit = new Outfit({
+            userId,
             name,
             items: itemIds
         });
@@ -252,8 +258,9 @@ app.post('/api/outfits', async (req: Request, res: Response) => {
     }
 });
 
-app.get('/api/outfits', async (req, res) => {
+app.get('/api/outfits', async (req: any, res: Response) => {
     try {
+        const userId  = req.auth.userId;
         const outfits = await Outfit.find().populate('items').sort({ createdAt: -1});
         console.log(`Sending ${outfits.length} outfits to frontend`);
         res.json(outfits);
@@ -262,19 +269,20 @@ app.get('/api/outfits', async (req, res) => {
     }
 })
 
-app.patch('/api/outfits/:id/feedback', async (req: Request, res: Response) => {
+app.patch('/api/outfits/:id/feedback', async (req: any, res: Response) => {
     try {
         const {feedback} = req.body;
+        const userId = req.auth.userId;
         if (!['like', 'dislike', 'none'].includes(feedback)) {
             return res.status(400).json({error: "Invalid feedback value."});
         }
         const updatedOutfit = await Outfit.findByIdAndUpdate(
-            req.params.id,
+            { _id: req.params.id, userId },
             {feedback},
             {new: true}
         ).populate('items');
         if (!updatedOutfit) {
-            return res.status(404).json({error: "Outfit not found."});
+            return res.status(404).json({error: "Outfit not found or unauthorized."});
         }
         res.json(updatedOutfit);
     } catch (error: any) {
@@ -283,8 +291,9 @@ app.patch('/api/outfits/:id/feedback', async (req: Request, res: Response) => {
     }
 });
 
-app.delete('/api/outfits/:id', async (req: Request, res: Response) => {
+app.delete('/api/outfits/:id', async (req: any, res: Response) => {
     try {
+        const userId = req.auth.userId;
         const deleteOutfit = await Outfit.findByIdAndDelete(req.params.id);
 
         if (!deleteOutfit) {
@@ -298,15 +307,17 @@ app.delete('/api/outfits/:id', async (req: Request, res: Response) => {
     }
 });
 
-app.get('/api/stats', async (req: Request, res: Response) => {
+app.get('/api/stats', async (req: any, res: Response) => {
     try {
-        const itemCount = await Item.countDocuments();
-        const outfitCount = await Outfit.countDocuments();
+        const userId = req.auth.userId;
+        const totalItems = await Item.countDocuments({userId});
+        const totalOutfits = await Outfit.countDocuments({userId});
 
         res.json({
-            totalItems: itemCount,
-            totalOutfits: outfitCount,
-            latestLook: await Outfit.findOne().sort({ createdAt: -1 }).populate('items')
+            totalItems,
+            totalOutfits,
+            favouriteBrand:"Coming Soon",
+            mostWornColor: "Coming Soon"
         });
     } catch (error: any) {
         res.status(500).json({ error: "Failed to fetch stats" });
