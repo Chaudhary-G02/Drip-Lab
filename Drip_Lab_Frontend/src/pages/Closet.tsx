@@ -21,7 +21,7 @@ const Closet: React.FC = () => {
     const handleDelete = async (id: string) => {
         if (window.confirm("Are you sure you want to remove this item?")) {
             try {
-                await axios.delete(`http://localhost:3000/items/${id}`);
+                await axios.delete(`http://localhost:5000/api/items/${id}`);
                 fetchItems();
             } catch (error) {
                 console.error("Delete failed:", error);
