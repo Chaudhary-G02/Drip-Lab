@@ -39,7 +39,7 @@ const Navbar: React.FC = () => {
             {/* User Actions */}
             <div className="flex items-center gap-4">
                 <SignedIn>
-                    <UserButton afterSignOutUrl="/" appearance={{elements: {userButtonAvatarBox: "w-10 h-10 border-2 border-slate-100 hover:border-primary transition-colors"}}} />
+                    <UserButton afterSignOutUrl="/" appearance={{elements: {userButtonPopoverFooter: "hidden"}}} />
                 </SignedIn>
                 <SignedOut>
                     <Link to="/sign-in" className="bg-primary text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-blue-900 transition-all">

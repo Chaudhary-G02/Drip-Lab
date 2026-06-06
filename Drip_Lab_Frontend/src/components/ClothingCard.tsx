@@ -18,7 +18,7 @@ const ClothingCard: React.FC<ClothingCardProps> =({ id, name, category, imageUrl
              e.stopPropagation();
              onDelete(id);
          }}
-         className="absolute top-3 right-3 z-50 bg-white/90 backdrop-blur-md text-red-500 w-8 h-8 rounded-full flex items-center justify-center border border-gray-100 shadow-sm hover:text-white transition-all active:scale-90"
+         className="absolute top-3 right-3 z-50 bg-white/90 backdrop-blur-md text-red-500 w-8 h-8 rounded-full flex items-center justify-center border border-gray-100 shadow-sm hover:text-red-300 transition-all active:scale-90"
          title="Remove Item"
          >
              <svg
@@ -34,7 +34,7 @@ const ClothingCard: React.FC<ClothingCardProps> =({ id, name, category, imageUrl
          </button>
 
          {/* Image Container */}
-         <div className="h-64 bg-slate-200 overflow-hidden relative">
+         <div className="bg-slate-200 overflow-hidden relative h-72 w-full">
              <img
              src={imageUrl}
              alt={name}

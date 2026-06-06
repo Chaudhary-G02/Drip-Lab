@@ -15,3 +15,10 @@ body {
   min-height: 100vh;
 }
 
+div[class*="c1-userButtonPopoverFooter"],
+div[class*="c1-footer"],
+a[href*="clerk.com"] {
+  display: none !important;
+}
+
+
