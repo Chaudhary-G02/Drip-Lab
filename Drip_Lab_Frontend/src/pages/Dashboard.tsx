@@ -4,13 +4,16 @@ import { DripButton} from "../components/DripButton";
 import { Link } from "react-router-dom";
 import DashboardStats from "../components/DashboardStats";
 
+// @ts-ignore
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
 const Dashboard: React.FC = () => {
     const [stats, setStats] = useState({totalItems: 0, totalOutfits: 0});
 
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/stats');
+                const response = await axios.get(`${API_URL}/api/stats`);
                 setStats({
                     totalItems: response.data.totalItems || 0, totalOutfits: response.data.totalOutfits || 0
                 });

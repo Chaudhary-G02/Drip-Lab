@@ -5,6 +5,9 @@ import {Item, useStore} from "../store/useStore";
 import {motion, AnimatePresence} from "framer-motion";
 import {Search} from 'lucide-react';
 
+// @ts-ignore
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
 const Lookbook: React.FC = () => {
     const {outfits, isLoading, fetchOutfits} = useStore();
     const [selectedOutfit, setSelectedOutfit] = useState<any>(null);
@@ -20,7 +23,7 @@ const Lookbook: React.FC = () => {
         if (!window.confirm("Delete this look from your collection?")) return;
 
         try {
-            await axios.delete(`http://localhost:5000/api/outfits/${id}`);
+            await axios.delete(`${API_URL}/api/outfits/${id}`);
            fetchOutfits();
         } catch (error) {
             console.error("Delete failed:", error);
@@ -29,7 +32,7 @@ const Lookbook: React.FC = () => {
     }
     const handleFeedback = async (id:  string, feedbackStatus: 'like' | 'dislike') => {
         try {
-            await axios.patch(`http://localhost:5000/api/outfits/${id}/feedback`, {feedback: feedbackStatus});
+            await axios.patch(`${API_URL}/api/outfits/${id}/feedback`, {feedback: feedbackStatus});
             fetchOutfits();
         } catch (error) {
             console.error("Feedback failed:", error);

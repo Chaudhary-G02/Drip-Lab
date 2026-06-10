@@ -2,6 +2,9 @@ import React, { useState, useEffect} from 'react';
 import axios from 'axios';
 import {useNavigate} from "react-router-dom";
 
+// @ts-ignore
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
 const StylistLab: React.FC = () => {
     const navigate = useNavigate();
     const [items, setItems] = useState<any[]>([]);
@@ -17,7 +20,7 @@ const StylistLab: React.FC = () => {
     useEffect(() => {
         const fetchItems = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/items');
+                const response = await axios.get('${API_URL}/api/items');
                 setItems(response.data);
                 setLoading(false);
             } catch (error) {
@@ -34,7 +37,7 @@ const StylistLab: React.FC = () => {
 
         setIsGenerating(true);
         try {
-            const response = await axios.post('http://localhost:5000/api/ai/recommend',{scenario,location});
+            const response = await axios.post('${API_URL}/api/ai/recommend',{scenario,location});
             const {reasoning, selectedIds} = response.data;
 
             const suggestedItems = items.filter(i => selectedIds.includes(i._id));
@@ -62,7 +65,7 @@ const StylistLab: React.FC = () => {
         if (selectedItems.length < 2) return alert("An outfit needs at least 2 items!");
 
         try {
-            await axios.post('http://localhost:5000/api/outfits', {
+            await axios.post(`${API_URL}/api/outfits`, {
                 name: outfitName,
                 itemIds: selectedItems.map(i => i._id)
             });
