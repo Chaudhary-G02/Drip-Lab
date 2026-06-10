@@ -83,6 +83,8 @@ Complex Architecture: Assisted in scaffolding the multi-tenant architecture with
 
 Help with README file structure and some of its content
 
+Help with Deployment
+
 ## Future Plan 
 Automated AI Preference Training: Pipe user "like/dislike" feedback directly back into the Gemini prompt context to heavily personalize future recommendations.
 
