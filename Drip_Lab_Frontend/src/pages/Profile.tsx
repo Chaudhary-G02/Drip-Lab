@@ -2,12 +2,15 @@ import React,{useEffect, useState} from 'react';
 import axios from 'axios';
 import {useNavigate} from 'react-router-dom';
 
+// @ts-ignore
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
 const Profile = () => {
     const [stats, setStats] = useState<any>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
-        axios.get('http://localhost:5000/api/stats')
+        axios.get('${API_URL}/api/stats')
             .then(res => {
                 console.log("RAW FROM SERVER:", res.data);
                 setStats(res.data);

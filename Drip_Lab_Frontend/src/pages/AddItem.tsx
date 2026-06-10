@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import {Navigate, useNavigate} from 'react-router-dom';
 
+// @ts-ignore
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
 const AddItem: React.FC = () => {
     const [name, setName] = useState('');
     const [category, setCategory] = useState('Tops');
@@ -31,7 +34,7 @@ const AddItem: React.FC = () => {
         formData.append('image', file);
 
         try {
-            await axios.post('http://localhost:5000/api/items', formData, {
+            await axios.post(`${API_URL}/api/items`, formData, {
                 headers: {'Content-Type': 'multipart/form-data'}
             });
             alert("Item added to your Digital Closet!");

@@ -1,5 +1,9 @@
 import {create} from 'zustand';
 import axios from 'axios';
+
+// @ts-ignore
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
 declare global {
     interface Window {
         Clerk: any,
@@ -50,7 +54,7 @@ export const useStore = create<DripState>((set) => ({
     fetchItems: async () => {
         set({isLoading: true, error: null});
         try {
-            const response = await axios.get('http://localhost:5000/api/items');
+            const response = await axios.get(`${API_URL}/api/items`);
             set({items: response.data, isLoading: false});
         } catch (error: any) {
             set({error: error.message, isLoading: false});
@@ -60,7 +64,7 @@ export const useStore = create<DripState>((set) => ({
     fetchOutfits: async () => {
         set ({isLoading: true, error: null});
         try {
-            const response = await axios.get('http://localhost:5000/api/outfits');
+            const response = await axios.get(`${API_URL}/api/outfits`);
             set({outfits: response.data, isLoading: false});
         } catch (error: any) {
             set({error: error.message, isLoading: false});

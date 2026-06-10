@@ -6,6 +6,9 @@ import {useStore} from "../store/useStore";
 import {motion, AnimatePresence} from 'framer-motion';
 import {Search} from 'lucide-react';
 
+// @ts-ignore
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
 const Closet: React.FC = () => {
     const navigate = useNavigate();
     const {items, isLoading, fetchItems} = useStore();
@@ -21,7 +24,7 @@ const Closet: React.FC = () => {
     const handleDelete = async (id: string) => {
         if (window.confirm("Are you sure you want to remove this item?")) {
             try {
-                await axios.delete(`http://localhost:5000/api/items/${id}`);
+                await axios.delete(`${API_URL}/api/items/${id}`);
                 fetchItems();
             } catch (error) {
                 console.error("Delete failed:", error);
