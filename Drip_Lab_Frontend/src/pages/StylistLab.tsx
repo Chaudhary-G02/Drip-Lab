@@ -20,7 +20,7 @@ const StylistLab: React.FC = () => {
     useEffect(() => {
         const fetchItems = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/items');
+                const response = await axios.get(`${API_URL}/api/items`);
                 if (Array.isArray(response.data)) {
                     setItems(response.data);
                 } else {
