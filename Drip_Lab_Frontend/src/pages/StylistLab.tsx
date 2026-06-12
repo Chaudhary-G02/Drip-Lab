@@ -20,11 +20,17 @@ const StylistLab: React.FC = () => {
     useEffect(() => {
         const fetchItems = async () => {
             try {
-                const response = await axios.get('${API_URL}/api/items');
-                setItems(response.data);
+                const response = await axios.get('http://localhost:5000/api/items');
+                if (Array.isArray(response.data)) {
+                    setItems(response.data);
+                } else {
+                    console.error("Expected array but received:", response.data);
+                    setItems([]);
+                }
                 setLoading(false);
             } catch (error) {
                 console.error("Error fetching items:", error);
+                setItems([]);
                 setLoading(false);
             }
         };
@@ -77,6 +83,7 @@ const StylistLab: React.FC = () => {
     };
 
     const categories = ['All', 'Tops', 'Bottoms', 'Outerwear','Shoes'];
+    const safeItems = Array.isArray(items) ? items : [];
     const filteredItems = activeCategory === 'All'
     ? items
     : items.filter(i => i.category === activeCategory);

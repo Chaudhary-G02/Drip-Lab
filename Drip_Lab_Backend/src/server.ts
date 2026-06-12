@@ -10,6 +10,9 @@ import Item from './models/Item';
 import Outfit from './models/Outfit';
 import {GoogleGenerativeAI} from "@google/generative-ai";
 
+// @ts-ignore
+const API_URL = process.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
 dotenv.config();
 console.log("__________________________________");
 console.log("Loaded Keys:", Object.keys(process.env).filter(key => key.includes('API') || key.includes('Key')));
