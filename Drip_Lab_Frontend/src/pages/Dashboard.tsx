@@ -3,26 +3,27 @@ import axios from "axios";
 import { DripButton} from "../components/DripButton";
 import { Link } from "react-router-dom";
 import DashboardStats from "../components/DashboardStats";
+import {useStore} from "../store/useStore";
+import {useAuth} from "@clerk/clerk-react";
 
 // @ts-ignore
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 const Dashboard: React.FC = () => {
-    const [stats, setStats] = useState({totalItems: 0, totalOutfits: 0});
+    const {isLoaded, isSignedIn, getToken} = useAuth();
+    const {stats, fetchStats} = useStore();
 
     useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const response = await axios.get(`${API_URL}/api/stats`);
-                setStats({
-                    totalItems: response.data.totalItems || 0, totalOutfits: response.data.totalOutfits || 0
-                });
-            } catch (error) {
-                console.error("Dashboard sync failed:", error);
-            }
-        };
-        fetchStats();
-    }, []);
+       const loadMetrics = async () => {
+           if (!isLoaded || !isSignedIn) return;
+           try {
+                   await fetchStats();
+           } catch (err) {
+               console.error("Dashboard mount loading exception:, err");
+           }
+       };
+       loadMetrics();
+    }, [isLoaded, isSignedIn, getToken, fetchStats]);
 
     return (
         <div className="flex h-[calc(100vh-5rem)] w-full overflow-hidden">
@@ -38,7 +39,7 @@ const Dashboard: React.FC = () => {
                         className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col justify-center transition-all hover:shadow-md hover:-translate-y-1">
                         <span
                             className="bg-blue-100 text-blue-800 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full self-start mb-4">Vault Volume</span>
-                        <h2 className="text-7xl font-black text-slate-800 tracking-tighter">{stats.totalItems}</h2>
+                        <h2 className="text-7xl font-black text-slate-800 tracking-tighter">{stats?.totalItems}</h2>
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">Pieces in
                             Closet</p>
                     </div>
@@ -46,7 +47,7 @@ const Dashboard: React.FC = () => {
                         className="bg-white p-8 rounded-[2.5rem] shadow-sm border-slate-100 flex flex-col justify-center transition-all hover:shadow-md hover:-translate-y-1">
                         <span
                             className="bg-purple-100 text-purple-800 text-[10px] font-black uppercase tracking-widest px-4p py-2 rounded-full self-start mb-4">Curation Index</span>
-                        <h2 className="text-7xl font-black text-slate-800 tracking-tighter">{stats.totalOutfits}</h2>
+                        <h2 className="text-7xl font-black text-slate-800 tracking-tighter">{stats?.totalOutfits}</h2>
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">Saved Lookbook
                             Outfits</p>
                     </div>

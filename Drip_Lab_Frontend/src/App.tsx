@@ -1,4 +1,5 @@
-﻿import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+﻿import {useState } from "react";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import {SignedIn, SignedOut, RedirectToSignIn, SignIn, SignUp} from "@clerk/clerk-react";
 import Navbar from './components/Navbar';
 import Dashboard from "./pages/Dashboard";
@@ -8,6 +9,10 @@ import StylistLab from "./pages/StylistLab";
 import Lookbook from "./pages/Lookbook";
 import Profile from "./pages/Profile";
 import {Home} from "lucide-react";
+import {useAuth} from "@clerk/clerk-react";
+import axios from "axios";
+import {useEffect} from "react";
+import config from "tailwindcss/defaultConfig";
 
 const ProtectedRoute = ({children}: {children: React.ReactNode}) => {
     return (
@@ -18,9 +23,30 @@ const ProtectedRoute = ({children}: {children: React.ReactNode}) => {
     );
 };
 
+const AxiosInterceptor = ({children}: {children: React.ReactNode}) => {
+    const {getToken} = useAuth();
+    const [isReady, setIsReady] = useState(false);
+    useEffect(() => {
+        const interceptor = axios.interceptors.request.use(async (config) => {
+           const token = await getToken();
+           if (token) {
+               config.headers.Authorization = `Bearer ${token}`;
+           } else {
+               throw new axios.Cancel("Auth token not ready yet, cancelling ghost request.");
+           }
+           return config;
+        });
+        setIsReady(true);
+        return () => axios.interceptors.response.eject(interceptor);
+    }, [getToken]);
+    if (!isReady) return null;
+    return <>{children}</>;
+};
+
 function App() {
     return (
         <Router>
+            <AxiosInterceptor>
             <div className="min-h-screen w-full bg-slate-50 flex flex-col font-sans">
                 <Navbar />
 
@@ -50,6 +76,7 @@ function App() {
                     Drip-Lab Terminal | Status: <span className="text-green-400 font-bold">Online</span>
                 </footer>
             </div>
+            </AxiosInterceptor>
         </Router>
     );
 }

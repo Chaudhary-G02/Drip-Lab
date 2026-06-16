@@ -23,8 +23,18 @@ console.log("___________________________________");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:5173', 'https://drip-lab-frontend.vercel.app'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
+app.get('/api/health', (req: Request, res: Response) => {
+    res.json({
+        message: "Drip-Lab API is Live!",
+        status: "Healthy"
+    });
+});
 app.use('/api', ClerkExpressRequireAuth());
 
 const genAI = new GoogleGenerativeAI(geminikey || "");
@@ -113,13 +123,6 @@ app.post('/api/ai/recommend', async (req: any, res: Response) => {
         console.error("AI Stylist Error:", error.message);
         res.status(500).json({error: "AI failed to generate suggestion."});
     }
-});
-
-app.get('/api/health', (_req: Request, res: Response) => {
-    res.json({
-        message: "Drip-Lab API is live!",
-        status: "Healthy"
-    });
 });
 
 app.post('/api/items', upload.single('image'), async (req: any, res: Response) => {
@@ -220,18 +223,30 @@ app.post('/api/items', upload.single('image'), async (req: any, res: Response) =
 app.get('/api/items', async (req: any, res: Response) => {
     try {
         const userId= req.auth.userId;
-        const items = await Item.find().sort({ createdAt: -1 });
+        console.log(`Querying clothes database for user: ${userId}`);
+        const items = await Item.find({userId: userId
+        }).sort({ createdAt: -1 });
+        console.log(`Successfully dispatched ${items.length} wardrobe items back to client.`);
         res.json(items);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to fetch items" });
+    } catch (error: any) {
+        console.error("Database query exception encountered:", error.message);
+        res.status(500).json({error: "Failed to fetch items."});
     }
 });
 
-app.delete('/api/items/:id', async (req, res) => {
+app.delete('/api/items/:id', async (req: any, res: Response) => {
     try {
-        const deleteItem = await Item.findByIdAndDelete(req.params.id);
+        const userId = req.auth.userId;
+        const deleteItem = await Item.findOneAndDelete({ _id: req.params.id, userId});
         if (!deleteItem) {
-            return res.status(404).json({ error: "Item not found" });
+            return res.status(404).json({ error: "Item not found or unauthorized" });
+        }
+        if (deleteItem) {
+            const urlParts = deleteItem.imageUrl.split('/');
+            const fileName = urlParts[urlParts.length - 1];
+            const publicId = `drip_lab_closet/${fileName.split('.')[0]}`;
+            await cloudinary.uploader.destroy(publicId);
+            console.log(`Deleted image from Cloudinary: ${publicId}`);
         }
         res.json({ message: "Item deleted successfully." });
     } catch (error) {
@@ -264,7 +279,8 @@ app.post('/api/outfits', async (req: any, res: Response) => {
 app.get('/api/outfits', async (req: any, res: Response) => {
     try {
         const userId  = req.auth.userId;
-        const outfits = await Outfit.find().populate('items').sort({ createdAt: -1});
+        const outfits = await Outfit.find({userId: userId
+        }).populate('items').sort({ createdAt: -1});
         console.log(`Sending ${outfits.length} outfits to frontend`);
         res.json(outfits);
     } catch (error) {
@@ -279,7 +295,7 @@ app.patch('/api/outfits/:id/feedback', async (req: any, res: Response) => {
         if (!['like', 'dislike', 'none'].includes(feedback)) {
             return res.status(400).json({error: "Invalid feedback value."});
         }
-        const updatedOutfit = await Outfit.findByIdAndUpdate(
+        const updatedOutfit = await Outfit.findOneAndUpdate(
             { _id: req.params.id, userId },
             {feedback},
             {new: true}
@@ -297,7 +313,7 @@ app.patch('/api/outfits/:id/feedback', async (req: any, res: Response) => {
 app.delete('/api/outfits/:id', async (req: any, res: Response) => {
     try {
         const userId = req.auth.userId;
-        const deleteOutfit = await Outfit.findByIdAndDelete(req.params.id);
+        const deleteOutfit = await Outfit.findOneAndDelete(req.params.id);
 
         if (!deleteOutfit) {
             return res.status(404).json({ error: "Outfit not found" });
@@ -313,8 +329,11 @@ app.delete('/api/outfits/:id', async (req: any, res: Response) => {
 app.get('/api/stats', async (req: any, res: Response) => {
     try {
         const userId = req.auth.userId;
-        const totalItems = await Item.countDocuments({userId});
-        const totalOutfits = await Outfit.countDocuments({userId});
+        console.log(`Compiling dashboard analytics metrics for user: ${userId}`);
+        const totalItems = await Item.countDocuments({userId: userId
+        });
+        const totalOutfits = await Outfit.countDocuments({userId: userId
+        });
 
         res.json({
             totalItems,
@@ -323,9 +342,20 @@ app.get('/api/stats', async (req: any, res: Response) => {
             mostWornColor: "Coming Soon"
         });
     } catch (error: any) {
-        res.status(500).json({ error: "Failed to fetch stats" });
+        console.error("Stats Engine Failure:", error.message);
+        res.status(500).json({ error: "Failed to fetch stats",
+            details: error.message
+        });
     }
 });
+
+app.use((err: any, req: any, res: Response, next: any) => {
+    if (err.message === 'Unauthenticated') {
+        return res.status(401).json({error: "Unauthorized: Invalid or missing clerk token."});
+    }
+    console.error(err.stack);
+    res.status(500).json({error: "Internal Server Error"});
+})
 
 connectDB()
     .then(() => {

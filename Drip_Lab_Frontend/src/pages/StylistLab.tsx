@@ -1,16 +1,18 @@
 import React, { useState, useEffect} from 'react';
 import axios from 'axios';
 import {useNavigate} from "react-router-dom";
+import {useAuth} from "@clerk/clerk-react";
+import {useStore} from "../store/useStore";
 
 // @ts-ignore
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 const StylistLab: React.FC = () => {
     const navigate = useNavigate();
-    const [items, setItems] = useState<any[]>([]);
+    const {isLoaded, isSignedIn, getToken} = useAuth();
+    const {items, fetchItems, isLoading: storeLoading} = useStore();
     const [selectedItems, setSelectedItems] = useState<any[]>([]);
     const [outfitName, setOutfitName] = useState('');
-    const [loading, setLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState('All');
     const [scenario, setScenario] = useState('');
     const [location, setLocation] = useState('');
@@ -18,24 +20,20 @@ const StylistLab: React.FC = () => {
     const[aiReasoning, setAiReasoning] = useState('');
 
     useEffect(() => {
-        const fetchItems = async () => {
+        const syncWardrobe = async () => {
+            if (!isLoaded || !isSignedIn) return;
+
             try {
-                const response = await axios.get(`${API_URL}/api/items`);
-                if (Array.isArray(response.data)) {
-                    setItems(response.data);
-                } else {
-                    console.error("Expected array but received:", response.data);
-                    setItems([]);
+                const token = await getToken();
+                if (token) {
+                    await fetchItems(token);
                 }
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching items:", error);
-                setItems([]);
-                setLoading(false);
+            } catch (err) {
+                console.error("Failed to secure auth token on refresh:", err);
             }
         };
-        fetchItems();
-    }, []);
+        syncWardrobe();
+    }, [isLoaded, isSignedIn, getToken, fetchItems]);
 
     const handleAISuggestion = async () => {
         if (!scenario) return alert("Enter a scenario for the AI!");
@@ -43,10 +41,17 @@ const StylistLab: React.FC = () => {
 
         setIsGenerating(true);
         try {
-            const response = await axios.post('${API_URL}/api/ai/recommend',{scenario,location});
+            const token = await getToken();
+            const response = await axios.post(`${API_URL}/api/ai/recommend`,{scenario,location},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
             const {reasoning, selectedIds} = response.data;
 
-            const suggestedItems = items.filter(i => selectedIds.includes(i._id));
+            const suggestedItems = safeItems.filter(i => selectedIds.includes(i._id));
             setSelectedItems(suggestedItems);
             setAiReasoning(reasoning);
             setOutfitName(`${scenario.slice(0, 15)}...Look`);
@@ -71,10 +76,17 @@ const StylistLab: React.FC = () => {
         if (selectedItems.length < 2) return alert("An outfit needs at least 2 items!");
 
         try {
+            const token = await getToken();
             await axios.post(`${API_URL}/api/outfits`, {
                 name: outfitName,
                 itemIds: selectedItems.map(i => i._id)
-            });
+            },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
             alert("Outfit saved to your collection!");
             navigate('/closet');
         } catch (error) {
@@ -85,8 +97,8 @@ const StylistLab: React.FC = () => {
     const categories = ['All', 'Tops', 'Bottoms', 'Outerwear','Shoes'];
     const safeItems = Array.isArray(items) ? items : [];
     const filteredItems = activeCategory === 'All'
-    ? items
-    : items.filter(i => i.category === activeCategory);
+    ? safeItems
+    : safeItems.filter(i => i.category === activeCategory);
 
     return (
         <div className="flex h-screen bg-slate-50 overflow-hidden pt-16">
