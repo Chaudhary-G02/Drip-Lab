@@ -72,7 +72,7 @@ const Dashboard: React.FC = () => {
                         Open Stylist Lab
                     </Link>
                     <Link to='/lookbook'
-                          className="w-fullbg-primary text-white py-5 roundded-2xl text-center txt-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-900 transition-all shadow-sm hover:shadow-md">
+                          className="w-full bg-primary text-white py-5 rounded-2xl text-center text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-900 transition-all shadow-sm hover:shadow-md">
                         View Lookbook
                     </Link>
                 </div>

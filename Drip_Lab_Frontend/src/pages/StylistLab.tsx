@@ -55,9 +55,13 @@ const StylistLab: React.FC = () => {
             setSelectedItems(suggestedItems);
             setAiReasoning(reasoning);
             setOutfitName(`${scenario.slice(0, 15)}...Look`);
-        } catch (error) {
+        } catch (error: any) {
             console.error("AI Error:", error);
-            alert("The Stylist is busy. Try again later.");
+            if (error.response && error.response.data && error.response.data.error) {
+                alert(error.response.data.error);
+            } else {
+                alert("The Stylist is busy. Try again later.");
+            }
         } finally {
             setIsGenerating(false);
         }
