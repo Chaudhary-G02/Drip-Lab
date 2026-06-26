@@ -26,9 +26,9 @@ const Dashboard: React.FC = () => {
     }, [isLoaded, isSignedIn, getToken, fetchStats]);
 
     return (
-        <div className="flex h-[calc(100vh-5rem)] w-full overflow-hidden">
+        <div className="flex flex-col md:flex-row h-auto min-h-[calc(100vh-5rem)] w-full overflow-hidden">
             {/* LEFT SIDE: The Terminal */}
-            <div className="w-1/2 p-16 flex flex-col justify-center bg-slate-50 overflow-y-auto no-scrollbar">
+            <div className="w-full md:w-1/2 p-6 md:p-16 flex flex-col justify-center bg-slate-50 overflow-y-auto no-scrollbar">
                 <div className="mb-12">
                     <h1 className="text-6xl font-black italic text-primary tracking-tighter uppercase">Drip Lab</h1>
                     <p className="text-sm font-bold text-gray-400 tracking-[0.3rem] uppercase mt-2">Stylist Terminal
@@ -78,7 +78,7 @@ const Dashboard: React.FC = () => {
                 </div>
             </div>
             {/* RIGHT SIDE: The Hero Visual */}
-            <div className="w-1/2 relative bg-slate-200 shadow-inner">
+            <div className="hidden md:block w-1/2 relative bg-slate-200 shadow-inner">
                 <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop"
                      alt="Drip Lab Wardrobe"
                      className="w-full h-full object"

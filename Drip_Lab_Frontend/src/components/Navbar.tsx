@@ -9,7 +9,7 @@ const Navbar: React.FC = () => {
         }`;
 
     return (
-        <nav className="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-white/20 shadow-sm">
+        <nav className="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-white/20 shadow-sm flex items-center justify-between px-6 py-4">
             {/* Brand Logo */}
             <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
