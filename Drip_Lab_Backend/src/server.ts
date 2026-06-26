@@ -135,32 +135,36 @@ app.post('/api/items', upload.single('image'), async (req: any, res: Response) =
         console.log("✂️ Removing background...");
 
         const originalBase64 = req.file.buffer.toString('base64');
-        const removeBgResponse = await fetch('https://api.remove.bg/v1.0/removebg', {
-            method: 'POST',
-            headers: {'X-Api-Key': process.env.REMOVE_BG_API_KEY as string, 'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                image_file_b64: originalBase64,
-                size: 'auto'
-            })
-        });
-        if (!removeBgResponse.ok) {
-            const errText = await removeBgResponse.text();
-            console.error("Remove.bg error:", errText);
-            throw new Error("Failed to remove background.");
+        let finalImageBuffer = req.file.buffer;
+        let finalBase64 = originalBase64;
+        try {
+            const removeBgResponse = await fetch('https://api.remove.bg/v1.0/removebg', {
+                method: 'POST',
+                headers: {'X-Api-Key': process.env.REMOVE_BG_API_KEY as string, 'Content-Type' : 'application/json'},
+                body: JSON.stringify({
+                    image_file_b64: originalBase64,
+                    size: 'auto'
+                })
+            });
+            if (removeBgResponse.ok) {
+                const noBgArrayBuffer = await removeBgResponse.arrayBuffer();
+                finalImageBuffer = Buffer.from(noBgArrayBuffer);
+                finalBase64 = finalImageBuffer.toString('base64');
+            } else {
+                console.warn("Remove.bg out of credits or failed. Using original image.");
+            }
+        } catch (e) {
+            console.warn("Remove.bg API unreachable. Using original image.");
         }
-        const noBgArrayBuffer = await removeBgResponse.arrayBuffer();
-        const noBgBuffer = Buffer.from(noBgArrayBuffer);
-        const noBgBase64 = noBgBuffer.toString('base64');
-        console.log("☁️ Uploading transparent image to Cloudinary...");
-
-        const imageUrl: string = await new Promise((resolve,reject) => {
-            const stream = cloudinary.uploader.upload_stream({folder: 'drip_lab_closet', format: 'png'},
+        console.log("Uploading image to Cloudinary...");
+        const imageUrl: string = await new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream({folder: 'drip_lab_closet', format: 'jpeg'},
                 (error, result) => {
-                    if (result) resolve(result.secure_url);
-                    else reject(error);
+                if (result) resolve(result.secure_url);
+                else reject(error);
                 }
             );
-            stream.end(noBgBuffer);
+            stream.end(finalImageBuffer);
         });
 
         let aiColor = undefined;
@@ -177,7 +181,7 @@ app.post('/api/items', upload.single('image'), async (req: any, res: Response) =
             const result = await model.generateContent([prompt,
                 {
                     inlineData: {
-                        data: noBgBase64,
+                        data: finalBase64,
                         mimeType: req.file.mimetype || 'image/png'
                     }
                 }
